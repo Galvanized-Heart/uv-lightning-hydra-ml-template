@@ -16,6 +16,9 @@ clean-logs: ## Clean logs
 format: ## Run pre-commit hooks
 	pre-commit run -a
 
+install: ## Install uv environment
+	uv sync
+
 sync: ## Merge changes from main branch to your current branch
 	git pull
 	git pull origin main
@@ -27,4 +30,4 @@ test-full: ## Run all tests
 	pytest
 
 train: ## Train the model
-	python src/train.py
+	uv run src/train.py $(ARGS)

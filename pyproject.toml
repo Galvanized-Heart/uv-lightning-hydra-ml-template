@@ -1,3 +1,35 @@
+[project]
+name = "your-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch", 
+    "torchmetrics",
+    "lightning", 
+    "hydra-core", 
+    "omegaconf",
+    "wandb", 
+    "optuna", 
+    "hydra-optuna-sweeper",
+    "pandas", 
+    "pyarrow", 
+    "duckdb",
+
+    # --------- loggers --------- #
+    # wandb
+    # neptune-client
+    # mlflow
+    # comet-ml
+
+    # --------- others --------- #
+    rootutils,       # standardizing the project root setup
+    pre-commit,      # hooks for applying linters on commit
+    rich,            # beautiful text formatting in terminal
+    pytest,          # tests
+]
+
 [tool.pytest.ini_options]
 addopts = [
   "--color=yes",
@@ -23,3 +55,10 @@ exclude_lines = [
     "raise NotImplementedError()",
     "if __name__ == .__main__.:",
 ]
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
