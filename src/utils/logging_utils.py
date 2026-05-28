@@ -1,11 +1,74 @@
 from typing import Any, Dict
+import json, hashlib, socket
+from pathlib import Path
 
+import pandas as pd
 from lightning_utilities.core.rank_zero import rank_zero_only
 from omegaconf import OmegaConf
+import wandb
 
 from src.utils import pylogger
 
 log = pylogger.RankedLogger(__name__, rank_zero_only=True)
+
+
+MANIFEST = Path("runs_manifest.parquet")
+
+
+def flatten_cfg(cfg) -> dict:
+    resolved = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+    out = {}
+    def _flat(obj, prefix=""):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                _flat(v, f"{prefix}{k}.")
+        elif isinstance(obj, list):
+            out[prefix.rstrip(".")] = json.dumps(obj)
+        else:
+            out[prefix.rstrip(".")] = obj
+    _flat(resolved)
+    return out
+
+
+def init_wandb(cfg):
+    flat = flatten_cfg(cfg)
+    wandb.init(project=cfg.project, config=flat)
+    return flat
+
+
+def save_run_record(cfg, flat_cfg: dict, metrics: dict,
+                    checkpoint_path: str, prediction_cache_path: str = ""):
+    record = {
+        "run_id":                  wandb.run.id,
+        "wandb_url":               wandb.run.url,
+        "config_hash":             hashlib.md5(
+                                     json.dumps(flat_cfg, sort_keys=True)
+                                     .encode()).hexdigest(),
+        "hydra_output_dir":        str(Path.cwd()),
+        "checkpoint_path":         checkpoint_path,
+        "prediction_cache_path":   prediction_cache_path,
+        "git_commit":              _git_hash(),
+        "dataset_hash":            cfg.get("dataset_hash", ""),
+        "hostname":                socket.gethostname(),
+        "timestamp":               pd.Timestamp.now().isoformat(),
+        **{f"cfg.{k}": v for k, v in flat_cfg.items()},
+        **{f"metric.{k}": v for k, v in metrics.items()},
+    }
+    df = pd.DataFrame([record])
+    if MANIFEST.exists():
+        existing = pd.read_parquet(MANIFEST)
+        df = pd.concat([existing, df], ignore_index=True)
+    df.to_parquet(MANIFEST, index=False)
+
+
+def _git_hash():
+    try:
+        import subprocess
+        return subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"]
+        ).decode().strip()
+    except Exception:
+        return ""
 
 
 @rank_zero_only
