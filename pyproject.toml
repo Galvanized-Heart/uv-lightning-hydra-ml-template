@@ -18,16 +18,16 @@ dependencies = [
     "duckdb",
 
     # --------- loggers --------- #
-    # wandb
-    # neptune-client
-    # mlflow
-    # comet-ml
+    # "wandb",
+    # "neptune-client",
+    # "mlflow,"
+    # "comet-ml",
 
     # --------- others --------- #
-    rootutils,       # standardizing the project root setup
-    pre-commit,      # hooks for applying linters on commit
-    rich,            # beautiful text formatting in terminal
-    pytest,          # tests
+    "rootutils",       # standardizing the project root setup
+    "pre-commit",      # hooks for applying linters on commit
+    "rich",            # beautiful text formatting in terminal
+    "pytest",          # tests
 ]
 
 [tool.pytest.ini_options]
