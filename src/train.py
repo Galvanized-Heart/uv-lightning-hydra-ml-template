@@ -32,6 +32,8 @@ from src.utils import (
     get_metric_value,
     instantiate_callbacks,
     instantiate_loggers,
+    save_run_record, 
+    flatten_cfg,
     log_hyperparameters,
     task_wrapper,
 )
@@ -101,6 +103,17 @@ def train(cfg: DictConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
     # merge train and test metrics
     metric_dict = {**train_metrics, **test_metrics}
+
+    # save flat record for result searching
+    checkpoint_cb = trainer.checkpoint_callback
+    if checkpoint_cb and checkpoint_cb.best_model_path:
+        save_run_record(
+            cfg=cfg,
+            flat_cfg=flatten_cfg(cfg),
+            metrics={**{k: float(v) for k, v in train_metrics.items()},
+                    **{k: float(v) for k, v in test_metrics.items()}},
+            checkpoint_path=checkpoint_cb.best_model_path,
+        )
 
     return metric_dict, object_dict
 
