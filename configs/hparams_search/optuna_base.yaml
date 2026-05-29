@@ -1,0 +1,9 @@
+defaults:
+  - override /hydra/sweeper: optuna
+
+hydra:
+  sweeper:
+    storage: sqlite:///logs/optuna_studies.db
+    study_name: ${experiment_name}
+    direction: minimize
+    n_trials: 50
