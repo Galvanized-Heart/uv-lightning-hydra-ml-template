@@ -16,8 +16,9 @@ clean-logs: ## Clean logs
 format: ## Run pre-commit hooks
 	pre-commit run -a
 
-install: ## Install uv environment
+install: ## Install uv environment and create .env
 	uv sync
+	cp .env.example .env
 
 sync: ## Merge changes from main branch to your current branch
 	git pull
